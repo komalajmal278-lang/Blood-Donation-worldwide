@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard | Worldwide Blood Donation</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff0f0;
+            color: #333;
+        }
+
+        header {
+            background: #c62828;
+            color: white;
+            padding: 22px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000012;
+        }
+
+        h2 { color: #c62828; }
+
+        .detail {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            overflow-wrap: anywhere;
+        }
+
+        button, .link-button {
+            display: inline-block;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #c62828;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 8px 5px 0 0;
+            font-size: 15px;
+        }
+
+        .secondary { background: #555; }
+
+        #status { color: #c62828; }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>🩸 Worldwide Blood Donation</h1>
+    <p>Donor Dashboard</p>
+</header>
+
+<main class="container">
+    <section class="card">
+        <h2 id="welcome">Welcome!</h2>
+        <p>Your account details are shown below.</p>
+        <p id="status" role="status"></p>
+
+        <div class="detail"><strong>Full Name:</strong> <span id="name">Loading...</span></div>
+        <div class="detail"><strong>Email:</strong> <span id="email">Loading...</span></div>
+        <div class="detail"><strong>Blood Group:</strong> <span id="bloodGroup">Loading...</span></div>
+        <div class="detail"><strong>Country:</strong> <span id="country">Loading...</span></div>
+        <div class="detail"><strong>City:</strong> <span id="city">Loading...</span></div>
+
+        <button id="logoutButton">Logout</button>
+        <a class="link-button secondary" href="search.html">Search Donors</a>
+        <a class="link-button secondary" href="index.html">Home</a>
+    </section>
+
+    <section class="card">
+        <h2>Make a Difference ❤️</h2>
+        <p>Your willingness to donate blood may help save someone's life.</p>
+        <p>Keep your donor information accurate and up to date.</p>
+    </section>
+</main>
+
+<script>
+    const token = sessionStorage.getItem("token");
+    const savedDonor = sessionStorage.getItem("donor");
+    const status = document.getElementById("status");
+
+    if (!token || !savedDonor) {
+        window.location.href = "login.html";
+    } else {
+        try {
+            const donor = JSON.parse(savedDonor);
+
+            document.getElementById("welcome").textContent =
+                "Welcome, " + (donor.fullName || "Donor") + "!";
+
+            document.getElementById("name").textContent =
+                donor.fullName || "Not provided";
+            document.getElementById("email").textContent =
+                donor.email || "Not provided";
+            document.getElementById("bloodGroup").textContent =
+                donor.bloodGroup || "Not provided";
+            document.getElementById("country").textContent =
+                donor.country || "Not provided";
+            document.getElementById("city").textContent =
+                donor.city || "Not provided";
+        } catch (error) {
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+    }
+
+    document.getElementById("logoutButton").addEventListener("click", function() {
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("name");
+        sessionStorage.removeItem("donor");
+        window.location.href = "login.html";
+    });
+</script>
+</body>
+</html>

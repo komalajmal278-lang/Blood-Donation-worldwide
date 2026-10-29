@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Registration | Worldwide Blood Donation</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff0f0;
+            color: #333;
+        }
+
+        header {
+            background: #c62828;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000015;
+        }
+
+        h2 {
+            text-align: center;
+            color: #c62828;
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #e57373;
+            border-color: #c62828;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 22px;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #8e1717;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🩸 Become a Blood Donor</h1>
+    <p>Your one donation can help save lives.</p>
+</header>
+
+<main class="container">
+    <h2>Donor Registration</h2>
+
+    <form id="registerForm">
+        <label for="name">Full Name</label>
+        <input
+            type="text"
+            id="name"
+            autocomplete="name"
+            maxlength="100"
+            required
+        >
+
+        <label for="email">Email Address</label>
+        <input
+            type="email"
+            id="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+        >
+
+        <label for="password">Password</label>
+        <input
+            type="password"
+            id="password"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            required
+        >
+
+        <label for="bloodGroup">Blood Group</label>
+        <select id="bloodGroup" required>
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+        </select>
+
+        <label for="country">Country</label>
+        <input
+            type="text"
+            id="country"
+            placeholder="e.g. Pakistan"
+            autocomplete="country-name"
+            maxlength="100"
+            required
+        >
+
+        <label for="city">City</label>
+        <input
+            type="text"
+            id="city"
+            placeholder="e.g. Faisalabad"
+            autocomplete="address-level2"
+            maxlength="100"
+            required
+        >
+
+        <button type="submit" id="registerButton">
+            Register
+        </button>
+    </form>
+
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <a class="back" href="index.html">Back to Home</a>
+    <a class="back" href="login.html">Already registered? Login</a>
+</main>
+
+<script>
+    const registerForm = document.getElementById("registerForm");
+    const registerButton = document.getElementById("registerButton");
+    const message = document.getElementById("message");
+
+    registerForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        message.textContent = "";
+        registerButton.disabled = true;
+        registerButton.textContent = "Registering...";
+
+        const donorData = {
+            fullName: document.getElementById("name").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            password: document.getElementById("password").value,
+            bloodGroup: document.getElementById("bloodGroup").value,
+            country: document.getElementById("country").value.trim(),
+            city: document.getElementById("city").value.trim()
+        };
+
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/auth/register",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(donorData)
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                message.textContent =
+                    result.message || "Registration failed. Please try again.";
+                message.style.color = "#c62828";
+                return;
+            }
+
+            message.textContent =
+                "Registration successful! Redirecting to login...";
+            message.style.color = "green";
+
+            registerForm.reset();
+
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 1200);
+
+        } catch (error) {
+            console.error("Registration error:", error);
+
+            message.textContent =
+                "Backend se connection nahi ho saka. Check karo ke server chal raha hai.";
+            message.style.color = "#c62828";
+
+        } finally {
+            registerButton.disabled = false;
+            registerButton.textContent = "Register";
+        }
+    });
+</script>
+
+</body>
+</html>

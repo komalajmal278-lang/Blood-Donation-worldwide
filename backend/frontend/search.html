@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Blood Donors | Worldwide Blood Donation</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff0f0;
+            color: #333;
+        }
+
+        header {
+            background: #c62828;
+            color: white;
+            text-align: center;
+            padding: 22px;
+        }
+
+        nav {
+            background: #a61b1b;
+            padding: 14px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            display: inline-block;
+            padding: 5px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 35px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000015;
+        }
+
+        h2 {
+            color: #c62828;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 22px;
+            background: #c62828;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #8e1717;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        #results {
+            margin-top: 22px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .donor-card {
+            background: #fff0f0;
+            border-left: 5px solid #c62828;
+            padding: 15px;
+            margin: 14px 0;
+            border-radius: 8px;
+        }
+
+        .donor-card h3 {
+            margin-top: 0;
+            color: #c62828;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #c62828;
+        }
+
+        .note {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🩸 Find a Blood Donor</h1>
+    <p>Search for available donors by blood group and location.</p>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="register.html">Become a Donor</a>
+    <a href="login.html">Login</a>
+</nav>
+
+<main class="container">
+    <h2>Search Donors</h2>
+
+    <form id="searchForm">
+        <label for="bloodGroup">Required Blood Group</label>
+        <select id="bloodGroup" required>
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+        </select>
+
+        <label for="country">Country</label>
+        <input
+            type="text"
+            id="country"
+            placeholder="e.g. Pakistan"
+            maxlength="100"
+            required
+        >
+
+        <label for="city">City</label>
+        <input
+            type="text"
+            id="city"
+            placeholder="e.g. Faisalabad"
+            maxlength="100"
+            required
+        >
+
+        <button type="submit" id="searchButton">
+            Search Donors
+        </button>
+    </form>
+
+    <div id="results" aria-live="polite"></div>
+
+    <p class="note">
+        Donor availability can change. Confirm availability before arranging a donation.
+    </p>
+
+    <a class="back" href="index.html">Back to Home</a>
+</main>
+
+<script>
+    const searchForm = document.getElementById("searchForm");
+    const searchButton = document.getElementById("searchButton");
+    const results = document.getElementById("results");
+
+    searchForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        results.replaceChildren();
+
+        const bloodGroup =
+            document.getElementById("bloodGroup").value;
+
+        const country =
+            document.getElementById("country").value.trim();
+
+        const city =
+            document.getElementById("city").value.trim();
+
+        const loading = document.createElement("p");
+        loading.textContent = "Searching donors...";
+        results.appendChild(loading);
+
+        searchButton.disabled = true;
+        searchButton.textContent = "Searching...";
+
+        const params = new URLSearchParams({
+            bloodGroup: bloodGroup,
+            country: country,
+            city: city
+        });
+
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/donors/search?" +
+                params.toString()
+            );
+
+            const data = await response.json();
+
+            results.replaceChildren();
+
+            if (!response.ok) {
+                const errorMessage = document.createElement("p");
+                errorMessage.textContent =
+                    data.message || "Donor search failed.";
+                results.appendChild(errorMessage);
+                return;
+            }
+
+            const heading = document.createElement("h3");
+            heading.textContent =
+                "Donors Found: " + data.count;
+            results.appendChild(heading);
+
+            if (!data.donors || data.donors.length === 0) {
+                const emptyMessage = document.createElement("p");
+                emptyMessage.textContent =
+                    "Is blood group aur location ke liye koi donor nahi mila.";
+                results.appendChild(emptyMessage);
+                return;
+            }
+
+            data.donors.forEach(function(donor) {
+                const card = document.createElement("article");
+                card.className = "donor-card";
+
+                const name = document.createElement("h3");
+                name.textContent = donor.fullName;
+
+                const group = document.createElement("p");
+                group.textContent =
+                    "Blood Group: " + donor.bloodGroup;
+
+                const location = document.createElement("p");
+                location.textContent =
+                    "Location: " + donor.city + ", " + donor.country;
+
+                card.appendChild(name);
+                card.appendChild(group);
+                card.appendChild(location);
+
+                results.appendChild(card);
+            });
+
+        } catch (error) {
+            console.error("Donor search error:", error);
+
+            results.replaceChildren();
+
+            const errorMessage = document.createElement("p");
+            errorMessage.textContent =
+                "Backend se connection nahi ho saka. Check karein ke backend server chal raha hai.";
+
+            results.appendChild(errorMessage);
+
+        } finally {
+            searchButton.disabled = false;
+            searchButton.textContent = "Search Donors";
+        }
+    });
+</script>
+
+</body>
+</html>
