@@ -8,6 +8,30 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// MongoDB connection for Vercel and local use
+let dbConnection = null;
+
+app.use(async (req, res, next) => {
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            if (!dbConnection) {
+                dbConnection = mongoose.connect(process.env.MONGO_URI);
+            }
+
+            await dbConnection;
+        }
+
+        next();
+    } catch (error) {
+        dbConnection = null;
+        console.error("MongoDB connection failed:", error.message);
+
+        res.status(500).json({
+            message: "Database connection failed."
+        });
+    }
+});
+
 // Donor model
 const Donor = require("./models/Donor");
 
@@ -34,7 +58,7 @@ app.get("/api/donors/search", async (req, res) => {
             value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
         const donors = await Donor.find({
-            bloodGroup: bloodGroup,
+            bloodGroup,
             country: {
                 $regex: "^" + escapeRegex(country.trim()) + "$",
                 $options: "i"
@@ -48,40 +72,33 @@ app.get("/api/donors/search", async (req, res) => {
                 { isAvailable: { $exists: false } }
             ]
         })
-        .select("fullName bloodGroup country city")
-        .limit(50);
+            .select("fullName bloodGroup country city")
+            .limit(50);
 
-        return res.json({
+        res.json({
             message: donors.length
                 ? "Donors found!"
                 : "No donors found for these details.",
             count: donors.length,
-            donors: donors
+            donors
         });
     } catch (error) {
         console.error("Donor search error:", error.message);
 
-        return res.status(500).json({
+        res.status(500).json({
             message: "Donor search failed. Please try again."
         });
     }
 });
 
-// Connect MongoDB and start server
-mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log("MongoDB Connected Successfully!");
+// Export app for Vercel
+module.exports = app;
 
-        const PORT = process.env.PORT || 5000;
+// Run normally on your computer
+if (require.main === module) {
+    const PORT = process.env.PORT || 5000;
 
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-    })
-    .catch((error) => {
-        console.error(
-            "MongoDB connection failed:",
-            error.message
-        );
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
     });
+}

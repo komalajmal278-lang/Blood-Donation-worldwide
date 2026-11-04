@@ -1,10 +1,10 @@
 {
   "name": "blood-donation-worldwide",
   "version": "1.0.0",
-  "description": "",
+  "description": "Worldwide Blood Donation Website",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend/server.js"
   },
   "keywords": [],
   "author": "",
